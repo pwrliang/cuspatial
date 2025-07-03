@@ -88,8 +88,10 @@ struct test_poly_point_intersection {
     auto const point_idx = thrust::get<1>(poly_point_idxs);
 
     vec_2d<T> const& point = points_first[point_idx];
-
-    return is_point_in_polygon(point, polygons[poly_idx][0]);
+    for (IndexType part_idx = 0; part_idx < polygons[poly_idx].num_polygons(); ++part_idx) {
+      if (is_point_in_polygon(point, polygons[poly_idx][part_idx])) { return true; }
+    }
+    return false;
   }
 };
 
@@ -114,9 +116,6 @@ std::pair<rmm::device_uvector<IndexType>, rmm::device_uvector<IndexType>> quadtr
   rmm::device_async_resource_ref mr)
 {
   using T = iterator_vec_base_type<PointIterator>;
-
-  CUSPATIAL_EXPECTS(polygons.num_multipolygons() == polygons.num_polygons(),
-                    "Only one polygon per multipolygon currently supported.");
 
   auto num_poly_quad_pairs = std::distance(poly_indices_first, poly_indices_last);
 

@@ -160,6 +160,13 @@ struct strided_functor {
   auto __device__ operator()(std::size_t i) { return i * stride; }
 };
 
+template <typename ValueType, typename DeltaType>
+struct delta_functor {
+  explicit delta_functor(DeltaType const& delta) : delta{delta} {}
+  CUSPATIAL_HOST_DEVICE ValueType operator()(const ValueType& val) { return val + delta; }
+  DeltaType delta;
+};
+
 /**
  * @internal
  * @brief Functor to transform an index into a geometry ID determined by a range of offsets.
@@ -423,6 +430,23 @@ auto make_geometry_id_iterator(GeometryIter geometry_offsets_begin,
     first_part_offsets_begin,
     thrust::next(first_part_offsets_begin,
                  std::distance(geometry_offsets_begin, geometry_offsets_end)));
+}
+
+template <typename IndexT, typename GeometryIter, typename PartIter, typename RingIter>
+auto make_geometry_id_iterator(GeometryIter geometry_offsets_begin,
+                               GeometryIter geometry_offsets_end,
+                               PartIter part_offsets_begin,
+                               PartIter part_offsets_end,
+                               RingIter ring_offsets_begin)
+{
+  auto part_ids_begin = cuspatial::make_geometry_id_iterator<IndexT>(
+    part_offsets_begin, part_offsets_end, ring_offsets_begin);
+  auto zero_based_part_ids_begin =
+    thrust::make_transform_iterator(part_ids_begin, detail::delta_functor<IndexT, int>(-1));
+  return thrust::make_transform_iterator(
+    zero_based_part_ids_begin,
+    cuspatial::detail::index_to_geometry_id<IndexT, GeometryIter>{geometry_offsets_begin,
+                                                                  geometry_offsets_end});
 }
 
 template <typename OffsetIterator>

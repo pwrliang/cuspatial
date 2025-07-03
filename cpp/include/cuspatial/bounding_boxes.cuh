@@ -170,10 +170,28 @@ BoundingBoxIterator polygon_bounding_boxes(PolygonOffsetIterator polygon_offsets
                                            T expansion_radius           = T{0},
                                            rmm::cuda_stream_view stream = rmm::cuda_stream_default);
 
+template <class GeometryOffsetIterator,
+          class PartOffsetIterator,
+          class RingOffsetIterator,
+          class VertexIterator,
+          class BoundingBoxIterator,
+          class T      = iterator_vec_base_type<VertexIterator>,
+          class IndexT = iterator_value_type<GeometryOffsetIterator>>
+BoundingBoxIterator polygon_bounding_boxes(GeometryOffsetIterator geometry_offsets_first,
+                                           GeometryOffsetIterator geometry_offsets_last,
+                                           PartOffsetIterator part_offsets_first,
+                                           PartOffsetIterator part_offsets_last,
+                                           RingOffsetIterator polygon_ring_offsets_first,
+                                           RingOffsetIterator polygon_ring_offsets_last,
+                                           VertexIterator polygon_vertices_first,
+                                           VertexIterator polygon_vertices_last,
+                                           BoundingBoxIterator bounding_boxes_first,
+                                           T expansion_radius           = T{0},
+                                           rmm::cuda_stream_view stream = rmm::cuda_stream_default);
+
 /**
  * @} // end of doxygen group
  */
-
 }  // namespace cuspatial
 
 #include <cuspatial/detail/bounding_boxes.cuh>

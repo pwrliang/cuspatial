@@ -211,6 +211,9 @@ ConfigureTest(POINT_BOUNDING_BOXES_TEST_EXP
 ConfigureTest(POLYGON_BOUNDING_BOXES_TEST_EXP
     bounding_boxes/polygon_bounding_boxes_test.cu)
 
+ConfigureTest(MULTIPOLYGON_BOUNDING_BOXES_TEST_EXP
+        bounding_boxes/multipolygon_bounding_boxes_test.cu)
+
 ConfigureTest(LINESTRING_BOUNDING_BOXES_TEST_EXP
     bounding_boxes/linestring_bounding_boxes_test.cu)
 

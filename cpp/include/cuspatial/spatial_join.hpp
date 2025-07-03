@@ -74,6 +74,20 @@ std::unique_ptr<cudf::table> join_quadtree_and_bounding_boxes(
   int8_t max_depth,
   rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
 
+std::unique_ptr<cudf::table> quadtree_point_in_polygon(
+  cudf::table_view const& poly_quad_pairs,
+  cudf::table_view const& quadtree,
+  cudf::column_view const& point_indices,
+  cudf::column_view const& point_x,
+  cudf::column_view const& point_y,
+  cudf::column_view const& geom_offsets,
+  cudf::column_view const& part_offsets,
+  cudf::column_view const& ring_offsets,
+  cudf::column_view const& poly_points_x,
+  cudf::column_view const& poly_points_y,
+  rmm::device_async_resource_ref mr = rmm::mr::get_current_device_resource());
+
+
 /**
  * @brief Test whether the specified points are inside any of the specified polygons.
  *

@@ -183,4 +183,67 @@ BoundingBoxIterator polygon_bounding_boxes(PolygonOffsetIterator polygon_offsets
   return bounding_boxes_first;
 }
 
+template <class GeometryOffsetIterator,
+          class PartOffsetIterator,
+          class RingOffsetIterator,
+          class VertexIterator,
+          class BoundingBoxIterator,
+          class T,
+          class IndexT>
+BoundingBoxIterator polygon_bounding_boxes(GeometryOffsetIterator geometry_offsets_first,
+                                           GeometryOffsetIterator geometry_offsets_last,
+                                           PartOffsetIterator part_offsets_first,
+                                           PartOffsetIterator part_offsets_last,
+                                           RingOffsetIterator polygon_ring_offsets_first,
+                                           RingOffsetIterator polygon_ring_offsets_last,
+                                           VertexIterator polygon_vertices_first,
+                                           VertexIterator polygon_vertices_last,
+                                           BoundingBoxIterator bounding_boxes_first,
+                                           T expansion_radius,
+                                           rmm::cuda_stream_view stream)
+{
+  static_assert(is_same<T, iterator_vec_base_type<VertexIterator>>(),
+                "expansion_radius type must match vertex floating-point type");
+
+  static_assert(is_floating_point<T>(), "Only floating point polygon vertices supported");
+
+  static_assert(is_vec_2d<iterator_value_type<VertexIterator>>,
+                "Input vertices must be cuspatial::vec_2d");
+
+  static_assert(cuspatial::is_integral<iterator_value_type<GeometryOffsetIterator>,
+                                       iterator_value_type<PartOffsetIterator>,
+                                       iterator_value_type<RingOffsetIterator>>(),
+                "OffsetIterators must have integral value type.");
+
+  auto const num_geoms = std::distance(geometry_offsets_first, geometry_offsets_last) - 1;
+  auto const num_parts = std::distance(part_offsets_first, part_offsets_last) - 1;
+  auto const num_rings = std::distance(polygon_ring_offsets_first, polygon_ring_offsets_last) - 1;
+  auto const num_vertices = std::distance(polygon_vertices_first, polygon_vertices_last);
+
+  if (num_geoms > 0) {
+    CUSPATIAL_EXPECTS_VALID_MULTIPOLYGON_SIZES(
+      num_vertices,
+      std::distance(geometry_offsets_first, geometry_offsets_last),
+      std::distance(part_offsets_first, part_offsets_last),
+      std::distance(polygon_ring_offsets_first, polygon_ring_offsets_last));
+
+    if (num_geoms == 0 || num_parts == 0 || num_rings == 0 || num_vertices == 0) {
+      return bounding_boxes_first;
+    }
+
+    auto geom_ids_iter = make_geometry_id_iterator<IndexT>(geometry_offsets_first,
+                                                           geometry_offsets_last,
+                                                           part_offsets_first,
+                                                           part_offsets_last,
+                                                           polygon_ring_offsets_first);
+
+    return point_bounding_boxes(geom_ids_iter,
+                                geom_ids_iter + num_vertices,
+                                polygon_vertices_first,
+                                bounding_boxes_first,
+                                expansion_radius,
+                                stream);
+  }
+  return bounding_boxes_first;
+}
 }  // namespace cuspatial
