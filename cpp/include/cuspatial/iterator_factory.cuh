@@ -439,14 +439,16 @@ auto make_geometry_id_iterator(GeometryIter geometry_offsets_begin,
                                PartIter part_offsets_end,
                                RingIter ring_offsets_begin)
 {
-  auto part_ids_begin = cuspatial::make_geometry_id_iterator<IndexT>(
-    part_offsets_begin, part_offsets_end, ring_offsets_begin);
+  auto part_ids_begin =
+    make_geometry_id_iterator<IndexT>(part_offsets_begin, part_offsets_end, ring_offsets_begin);
   auto zero_based_part_ids_begin =
     thrust::make_transform_iterator(part_ids_begin, detail::delta_functor<IndexT, int>(-1));
-  return thrust::make_transform_iterator(
-    zero_based_part_ids_begin,
-    cuspatial::detail::index_to_geometry_id<IndexT, GeometryIter>{geometry_offsets_begin,
-                                                                  geometry_offsets_end});
+  auto geom_part_ids_begn =
+    thrust::make_transform_iterator(zero_based_part_ids_begin,
+                                    detail::index_to_geometry_id<IndexT, GeometryIter>{
+                                      geometry_offsets_begin, geometry_offsets_end});
+  return thrust::make_transform_iterator(geom_part_ids_begn,
+                                         detail::delta_functor<IndexT, int>(-1));
 }
 
 template <typename OffsetIterator>
